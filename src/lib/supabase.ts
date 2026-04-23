@@ -10,7 +10,7 @@ export const getSupabase = (): SupabaseClient => {
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
-    throw new Error('Configuração do Supabase ausente ou inválida. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nos segredos do AI Studio.');
+    throw new Error('Configuração do Supabase ausente. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nas variáveis de ambiente do seu provedor (ex: Vercel) ou no arquivo .env local.');
   }
 
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
