@@ -1,0 +1,6 @@
+{
+  "name": "Global Affiliate Hub",
+  "description": "Infraestrutura base para marketplace de afiliados com redirecionamento dinâmico, rastreio de Pixel e dashboard administrativa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
