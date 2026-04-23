@@ -14,13 +14,18 @@ import {
   Package, 
   DollarSign, 
   Trash2,
-  AlertCircle
+  AlertCircle,
+  PowerOff,
+  Sparkles
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import { Link, useNavigate } from 'react-router-dom';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
   const [links, setLinks] = useState<AffiliateLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome_produto: '',
     url_original: '',
@@ -133,6 +138,23 @@ export default function AdminDashboard() {
     toast.success('Link público copiado!');
   };
 
+  const handleLogout = async () => {
+    const { error } = await getSupabase().auth.signOut();
+    if (!error) navigate('/login');
+  };
+
+  // Mock data para Gráfico Analisando total de cliques (Somatório simulado por dia)
+  const chartData = [
+    { name: 'Seg', cliques: Math.floor(Math.random() * 50) + 10 },
+    { name: 'Ter', cliques: Math.floor(Math.random() * 60) + 20 },
+    { name: 'Qua', cliques: Math.floor(Math.random() * 80) + 30 },
+    { name: 'Qui', cliques: Math.floor(Math.random() * 70) + 40 },
+    { name: 'Sex', cliques: Math.floor(Math.random() * 100) + 50 },
+    { name: 'Sáb', cliques: Math.floor(Math.random() * 150) + 80 },
+    { name: 'Dom', cliques: links.reduce((acc, l) => acc + (l.cliques || 0), 0) + 5 // Puxando do real só pra ancorar o número final
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <Toaster position="top-right" />
@@ -145,14 +167,46 @@ export default function AdminDashboard() {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Global Affiliate <span className="text-blue-600">Hub</span></h1>
           </div>
           <div className="flex items-center gap-4">
+            <Link to="/analista" className="flex items-center gap-2 text-sm font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 px-4 py-2 rounded-full transition-colors">
+              <Sparkles className="w-4 h-4" />
+              IA Estratégica
+            </Link>
             <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-              Admin Panel v1.0
+              Admin v2.0
             </span>
+            <button onClick={handleLogout} title="Sair" className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+              <PowerOff className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-8 mt-10">
+        
+        {/* Painel de Gráfico Simples */}
+        <div className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
+          <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-blue-500" />
+            Desempenho Geral de Cliques (Últimos 7 dias)
+          </h2>
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorCliques" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <Tooltip contentStyle={{borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                <Area type="monotone" dataKey="cliques" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorCliques)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Form Column */}

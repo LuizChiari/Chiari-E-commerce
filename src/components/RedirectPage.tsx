@@ -104,7 +104,7 @@ export default function RedirectPage() {
 
         // Redirecionar após 2 segundos
         setTimeout(() => {
-          window.location.href = data.url_original;
+          window.location.assign(data.url_original);
         }, 2000);
 
       } catch (err) {
