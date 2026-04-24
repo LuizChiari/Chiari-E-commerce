@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getSupabase } from '../lib/supabase';
 import { Toaster, toast } from 'sonner';
@@ -10,9 +10,28 @@ export default function Captura() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(900); // 15 minutos em segundos
 
   // Captura a origem dinâmica via ?origem=anuncio_fb_01 na URL (se não houver, seta "organico-hub")
   const origin = searchParams.get('origin') || searchParams.get('origem') || 'organico-hub';
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (success) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [success]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,18 +62,30 @@ export default function Captura() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] flex flex-col items-center justify-center p-6 text-white font-sans selection:bg-purple-500/30">
-        <div className="max-w-md w-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md rounded-2xl p-10 text-center shadow-2xl">
-          <div className="w-16 h-16 bg-purple-500/10 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-6 border border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
-            <Download className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-bold mb-4 tracking-tight">Tudo Certo, {name.split(' ')[0]}!</h2>
-          <p className="text-zinc-400 mb-6">
-            O seu acesso ao <strong>Guia de Prompts Master</strong> foi liberado e o material completo foi enviado para o seu e-mail.
+      <div className="min-h-screen bg-[#0a0a0a] text-white font-sans text-center p-5 flex justify-center">
+        <div className="max-w-[800px] w-full pt-12">
+          <div className="text-2xl font-bold text-[#00ff88] mb-8 uppercase">Chiari Digital</div>
+          
+          <h1 className="text-3xl md:text-4xl font-bold mb-3">Tudo certo! O Guia foi enviado.</h1>
+          
+          <p className="text-[#aaaaaa] text-lg leading-relaxed mb-8">
+            Enquanto o e-mail chega, <strong>assista ao vídeo abaixo</strong>. Ele revela como escalar seus ganhos usando a Inteligência Artificial que você acabou de baixar.
           </p>
-          <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-colors w-full">
-            Acessar o Guia Agora
-          </button>
+          
+          <div className="bg-[#1a1a1a] border-2 border-[#333] rounded-[15px] p-5 my-8 aspect-video flex items-center justify-center">
+            <p className="text-[#666] font-medium">[VÍDEO DE VENDAS DO PARCEIRO]</p>
+          </div>
+
+          <a 
+            href="#" 
+            className="bg-gradient-to-r from-[#00ff88] to-[#00bd6e] text-black py-5 px-10 rounded-full no-underline font-bold text-lg md:text-xl inline-block transition-transform duration-300 hover:scale-105 shadow-[0_0_20px_rgba(0,255,136,0.3)]"
+          >
+            QUERO ACESSAR O MÉTODO COMPLETO →
+          </a>
+          
+          <div className="text-sm text-[#ff4444] mt-6 font-bold tracking-wide">
+            ESTA OFERTA EXCLUSIVA EXPIRA EM: <span>{formatTime(timeLeft)}</span>
+          </div>
         </div>
       </div>
     );
