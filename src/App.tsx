@@ -4,6 +4,7 @@ import RedirectPage from './components/RedirectPage';
 import AdminDashboard from './pages/AdminDashboard';
 import LoginPage from './pages/LoginPage';
 import AnalistaIA from './pages/AnalistaIA';
+import Captura from './pages/Captura';
 import { getSupabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -65,6 +66,9 @@ export default function App() {
         
         {/* Rota Raiz */}
         <Route path="/" element={<Navigate to="/admin" replace />} />
+
+        {/* Captura de Leads V3 */}
+        <Route path="/captura" element={<Captura />} />
 
         {/* Dynamic Catch-all for Slugs */}
         <Route path="/:slug" element={<RedirectPage />} />
