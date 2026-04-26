@@ -10,18 +10,21 @@ export default function AnalistaIA() {
     if (!prompt) return;
     setLoading(true);
     
+    // ATENÇÃO: Cole sua chave AIza no lugar do texto abaixo, entre as aspas.
+    const MINHA_CHAVE_MESTRA = "COLE_AQUI_SUA_CHAVE_AIZA";
+
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MINHA_CHAVE_MESTRA}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: `
             Você é o CHIARI ALPHA v3.1 - O Estrategista-Chefe da Chiari Digital.
-            Sua missão é superar qualquer especialista de marketing (como Douglas Castro) através de análise de dados global e identificação de brechas de mercado.
+            Sua missão é superar qualquer especialista de marketing através de análise de dados global e identificação de brechas de mercado.
 
             PROTOCOLO DE ANÁLISE:
-            1. SCANNER GLOBAL: Identifique tendências de IA nos EUA e Europa (ClickBank, Digistore24) que ainda não chegaram ao Brasil.
-            2. ANÁLISE DE BRECHAS: Onde os grandes players estão falhando? Encontre nichos de IA inexplorados.
+            1. SCANNER GLOBAL: Identifique tendências de IA nos EUA e Europa que ainda não chegaram ao Brasil.
+            2. ANÁLISE DE BRECHAS: Encontre nichos de IA inexplorados.
             3. OPORTUNIDADES DE 7 DÍGITOS: Liste 5 oportunidades reais com ticket médio, público-alvo e potencial de lucro.
             4. AUTOMAÇÃO DE EXECUÇÃO: Para a melhor oportunidade, forneça um PROMPT MESTRE que automatize a criação do funil de vendas, anúncios e conteúdo.
 
@@ -31,9 +34,15 @@ export default function AnalistaIA() {
       });
 
       const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+
       setResposta(data.candidates[0].content.parts[0].text);
     } catch (error) {
-      setResposta("ERRO DE CONEXÃO: Verifique a chave VITE_GEMINI_API_KEY no painel da Vercel.");
+      console.error(error);
+      setResposta("ERRO DE CONEXÃO: " + (error instanceof Error ? error.message : "Verifique se sua chave da API está correta e ativa no Google Cloud."));
     } finally {
       setLoading(false);
     }
