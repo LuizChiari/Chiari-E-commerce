@@ -1,4 +1,4 @@
-export const config = {
+ export const config = {
   runtime: 'edge',
 };
 
@@ -10,8 +10,8 @@ export default async function handler(req: Request) {
   try {
     const { prompt } = await req.json();
     
-    // Tenta pegar da Vercel, se não conseguir, usa a sua chave real direto
-    const apiKey = process.env.VITE_GEMINI_API_KEY || "AIzaSyBL88l_16dsos4holVoOBUhtl3T7t7RRpM";
+    // AQUI ESTÁ O SEGREDO: Colocamos a chave direto para não depender da Vercel ler a variável agora
+    const apiKey = "AIzaSyBL88l_16dsos4holVoOBUhtl3T7t7RRpM";
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -22,6 +22,15 @@ export default async function handler(req: Request) {
     });
 
     const data = await response.json();
+
+    // Se o Google reclamar da chave aqui, ele vai nos dizer exatamente o porquê
+    if (data.error) {
+      return new Response(JSON.stringify({ error: data.error }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
