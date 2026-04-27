@@ -1,74 +1,93 @@
 import React, { useState } from 'react';
-import React, { useState } from 'react';
-import { Brain, Loader2, Globe, Zap } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
+import { Bot, Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GoogleGenAI } from '@google/genai';
 
 export default function AnalistaIA() {
-  const [prompt, setPrompt] = useState('');
-  const [resposta, setResposta] = useState('');
   const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState('');
+  const [promptInput, setPromptInput] = useState('');
 
-  const analisarMercado = async () => {
-    if (!prompt) return;
+  const runAnalysis = async () => {
     setLoading(true);
-    setResposta(""); 
-
     try {
-      // Agora chamamos a NOSSA API, não a do Google diretamente
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('Chave VITE_GEMINI_API_KEY não encontrada nos Segredos.');
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const defaultPrompt = "Analise as tendências globais de mercado e sugira 3 nichos de produtos lucrativos que pagam comissão em Dólar ou Euro, além de fornecer um modelo curto de copy (texto persuasivo) de vendas para um deles.";
+      const finalPrompt = promptInput.trim() ? promptInput : defaultPrompt;
+
+      const result = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: "Você é um Analista de Marketing Digital Especialista em Tráfego Pago e Produtos Afiliados. Responda em português de Portugal/Brasil de forma clara e profissional.\n\n" + finalPrompt,
       });
 
-      const data = await response.json();
-      
-      if (data.error) {
-        setResposta("SISTEMA ALPHA: " + (data.error.message || "Erro na conexão."));
-      } else {
-        setResposta(data.candidates[0].content.parts[0].text);
-      }
-    } catch (e) {
-      setResposta("ERRO CRÍTICO: O servidor Alpha não respondeu.");
+      setResponse(result.text || "Sem resposta do modelo.");
+      toast.success('Análise gerada com sucesso!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Erro na análise IA: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8">
-      <div className="max-w-3xl mx-auto text-center md:text-left">
-        <h1 className="text-3xl font-black mb-8 flex items-center justify-center md:justify-start gap-3">
-          <div className="bg-[#00ff88] p-2 rounded-lg text-black shadow-[0_0_20px_rgba(0,255,136,0.3)]"><Brain /></div>
-          CHIARI ALPHA <span className="text-[#00ff88]">V3.1 PRO</span>
-        </h1>
-        
-        <div className="bg-[#0f0f0f] border border-white/10 rounded-[2.5rem] p-6 shadow-2xl">
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <Toaster position="top-right" />
+      
+      <header className="bg-white border-b border-slate-200 py-6 px-8 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Link to="/admin" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Bot className="text-purple-600 w-8 h-8" />
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Analista Estratégico <span className="text-purple-600">IA</span></h1>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-8 mt-10">
+        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm mb-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Comandar Analista</h2>
+          <p className="text-slate-500 mb-6">Peça estratégias de conversão, copys de vendas ou análise de nicho gringo.</p>
+          
           <textarea 
-            className="w-full bg-transparent border-none text-xl text-white focus:ring-0 resize-none placeholder:text-gray-700"
-            rows={5}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Comande o estrategista... (Sem VPN necessária)"
+            className="w-full h-32 p-4 border rounded-xl mb-4 focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none"
+            placeholder="Opcional: Descreva especificamente o que você precisa (ex: Crie uma copy para um produto de emagrecimento nos EUA voltado para o YouTube Ads)... Se vazio, gerarei tendências gerais."
+            value={promptInput}
+            onChange={e => setPromptInput(e.target.value)}
           />
+          
           <button 
-            onClick={analisarMercado}
+            onClick={runAnalysis}
             disabled={loading}
-            className="w-full mt-6 bg-[#00ff88] text-black font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-white transition-all transform active:scale-95 disabled:opacity-50"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
-            {loading ? <Loader2 className="animate-spin" /> : <Zap size={22} />}
-            {loading ? 'RASTREAMENTO GLOBAL...' : 'EXECUTAR ANÁLISE PROFISSIONAL'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+            Analisar Tendências Globais e Gerar Copy
           </button>
         </div>
 
-        {resposta && (
-          <div className="mt-8 p-8 bg-[#0a0a0a] border border-[#00ff88]/20 rounded-[2.5rem] text-gray-300 leading-relaxed text-lg whitespace-pre-wrap text-left shadow-2xl">
-            <div className="flex items-center gap-2 mb-4 text-[#00ff88] font-bold uppercase text-xs tracking-widest">
-              <Globe size={14} /> Relatório Alpha Gerado
+        {response && (
+          <div className="bg-slate-900 text-slate-100 p-8 rounded-2xl shadow-xl">
+            <h3 className="text-lg font-bold text-purple-400 mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+              <Sparkles className="w-5 h-5" /> Resultado da Análise Estratégica
+            </h3>
+            <div className="prose prose-invert max-w-none">
+              <div className="whitespace-pre-wrap">{response}</div>
             </div>
-            {resposta}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
