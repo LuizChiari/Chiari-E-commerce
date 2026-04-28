@@ -8,20 +8,16 @@ export default async function handler(req: Request) {
   try {
     const { prompt } = await req.json();
     const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-    const modelName = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+    let modelName = process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4.6";
 
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: { message: "OPENROUTER_API_KEY não configurada no Vercel" } }),
-        { status: 500 }
-      );
+      return new Response(JSON.stringify({ error: { message: "OPENROUTER_API_KEY não configurada" } }), { status: 500 });
     }
 
     const url = "https://openrouter.ai/api/v1/chat/completions";
 
-    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, um analista estratégico de alto nível especializado em marketing digital, marketing de afiliados, finanças pessoais e automação com IA.
-Responda sempre em português brasileiro, de forma clara, estruturada, profunda e acionável.
-Use títulos, bullet points, tabelas e recomendações práticas quando apropriado. Seja profissional e foque em valor real.`;
+    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, especialista em marketing digital, marketing de afiliados e automação com IA no nicho de finanças.
+Responda em português brasileiro, de forma clara, estruturada e prática. Use títulos, bullets e recomendações acionáveis.`;
 
     const fullPrompt = systemPrompt + "\n\nUsuário: " + prompt;
 
@@ -29,48 +25,36 @@ Use títulos, bullet points, tabelas e recomendações práticas quando apropria
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://chiari-alpha.vercel.app', // opcional, mas ajuda
+        'HTTP-Referer': 'https://chiari-alpha.vercel.app',
         'X-Title': 'Chiari Alpha',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: modelName,
-        messages: [
-          { role: "user", content: fullPrompt }
-        ],
+        messages: [{ role: "user", content: fullPrompt }],
         temperature: 0.7,
-        max_tokens: 4096,
+        max_tokens: 4000,
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error("OpenRouter Error:", data.error || data);
+      console.error("OpenRouter Error:", data.error);
       return new Response(
-        JSON.stringify({
-          error: data.error || { message: `Erro HTTP ${response.status}` },
-          debug: { model: modelName, status: response.status }
-        }),
+        JSON.stringify({ error: data.error || { message: `Erro ${response.status}` } }),
         { status: response.status || 400 }
       );
     }
 
-    // Extrai o texto da resposta (formato OpenAI)
-    const textoFinal = data.choices?.[0]?.message?.content || "Resposta vazia";
+    const textoFinal = data.choices?.[0]?.message?.content || "Sem resposta";
 
     return new Response(JSON.stringify({ 
       candidates: [{ content: { parts: [{ text: textoFinal }] } }] 
-    }), { 
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    }), { status: 200 });
 
   } catch (error: any) {
     console.error("Handler Error:", error);
-    return new Response(
-      JSON.stringify({ error: { message: "Erro interno no proxy: " + error.message } }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: { message: error.message } }), { status: 500 });
   }
 }
