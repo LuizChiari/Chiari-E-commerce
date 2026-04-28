@@ -142,29 +142,151 @@ Seja crítico e priorize alto potencial de conversão.`;
           <button
             onClick={iniciarBuscaOportunidades}
             disabled={loadingBusca}
+import React, { useState } from 'react';
+import { Toaster, toast } from 'sonner';
+import { Bot, Sparkles, Loader2, Globe, Copy, Check } from 'lucide-react';
+
+export default function AnalistaIA() {
+  const [loading, setLoading] = useState(false);
+  const [loadingBusca, setLoadingBusca] = useState(false);
+  const [response, setResponse] = useState('');
+  const [resultadosBusca, setResultadosBusca] = useState('');
+  const [promptInput, setPromptInput] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // Função para copiar texto
+  const copiarTexto = async (texto: string, tipo: string) => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopied(true);
+      toast.success(`${tipo} copiado para a área de transferência!`);
+      
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Erro ao copiar texto');
+    }
+  };
+
+  // Análise manual livre
+  const runAnalysis = async () => {
+    if (loading || !promptInput.trim()) return;
+
+    const userPrompt = promptInput.trim();
+    setLoading(true);
+    setResponse('');
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt })
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        toast.error(data.error.message || 'Erro ao processar');
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || "Sem resposta";
+
+      setResponse(textoFinal);
+      toast.success('Relatório Alpha Gerado!');
+    } catch (err) {
+      toast.error('Falha na conexão');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Busca de Oportunidades (EUA → Brasil → Europa)
+  const iniciarBuscaOportunidades = async () => {
+    setLoadingBusca(true);
+    setResultadosBusca('');
+
+    const promptBusca = `Você é o Comandar Estrategista 3.1 PRO...
+
+Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptBusca })
+      });
+
+      const data = await res.json();
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || "Sem resposta";
+
+      setResultadosBusca(textoFinal);
+      toast.success('✅ Busca Global concluída!');
+    } catch (err) {
+      toast.error('Erro na busca');
+    } finally {
+      setLoadingBusca(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#111111] text-white font-sans">
+      <Toaster position="top-center" richColors />
+
+      <header className="border-b border-[#0A0C0B] py-8 px-8">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 bg-[#00A951] rounded-2xl flex items-center justify-center shadow-[0_0_30px_#00A951]">
+              <Bot className="w-8 h-8 text-black" />
+            </div>
+            <div>
+              <h1 className="text-5xl font-black tracking-[-1.5px]">
+                CHIARI <span className="text-[#00A951]">ALPHA</span>
+              </h1>
+              <p className="text-[#00A951] text-2xl font-mono tracking-[2px] mt-1">V3.1 PRO</p>
+            </div>
+          </div>
+
+          {/* Botão Copiar Global (se tiver conteúdo) */}
+          {(response || resultadosBusca) && (
+            <button
+              onClick={() => copiarTexto(response || resultadosBusca, "Texto")}
+              className="flex items-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm transition-all"
+            >
+              <Copy className="w-5 h-5" />
+              Copiar Tudo
+            </button>
+          )}
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-6 pt-12 pb-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-semibold text-white">Comandar Estrategista 3.1 PRO</h2>
+          <p className="text-zinc-400 mt-2">Central de Marketing Inteligente para Afiliados</p>
+        </div>
+
+        {/* Botão Principal - Busca de Oportunidades */}
+        <div className="mb-12">
+          <button
+            onClick={iniciarBuscaOportunidades}
+            disabled={loadingBusca}
             className="w-full bg-gradient-to-r from-[#00A951] via-[#00C15E] to-[#00A951] hover:brightness-110
                        text-black font-black py-7 rounded-3xl text-2xl flex items-center justify-center gap-4 
                        transition-all active:scale-[0.97] shadow-[0_0_35px_#00A95180]"
           >
-            {loadingBusca ? (
-              <Loader2 className="w-8 h-8 animate-spin" />
-            ) : (
-              <Globe className="w-8 h-8" />
-            )}
-            🚀 INICIAR BUSCA DE OPORTUNIDADES
+            {loadingBusca ? <Loader2 className="w-8 h-8 animate-spin" /> : <Globe className="w-8 h-8" />}
+            🚀 INICIAR BUSCA DE OPORTUNIDADES (EUA → Brasil → Europa)
           </button>
-          <p className="text-center text-zinc-500 text-sm mt-3">
-            EUA → Brasil → Europa | Nicho: Finanças + IA + Marketing Digital
-          </p>
         </div>
 
-        {/* Caixa de Análise Manual */}
+        {/* Área de Análise Manual Livre */}
         <div className="bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-10 mb-12">
           <textarea
             className="w-full h-48 bg-[#111111] border border-[#1F2521] rounded-2xl p-7 text-lg 
                        placeholder-zinc-500 focus:border-[#00A951] focus:ring-1 focus:ring-[#00A951]/50 
                        outline-none resize-none transition-all"
-            placeholder="Digite aqui qualquer análise ou estratégia que quiser..."
+            placeholder="Digite aqui qualquer análise, estratégia ou pergunta que quiser..."
             value={promptInput}
             onChange={(e) => setPromptInput(e.target.value)}
           />
@@ -173,26 +295,30 @@ Seja crítico e priorize alto potencial de conversão.`;
             onClick={runAnalysis}
             disabled={loading || !promptInput.trim()}
             className="mt-8 w-full bg-[#00A951] hover:bg-[#00C15E] disabled:bg-zinc-700 
-                       text-black font-black py-6 rounded-2xl text-xl flex items-center 
-                       justify-center gap-3 transition-all active:scale-[0.97]"
+                       text-black font-black py-6 rounded-2xl text-xl flex items-center justify-center gap-3"
           >
-            {loading ? (
-              <Loader2 className="w-7 h-7 animate-spin" />
-            ) : (
-              <Sparkles className="w-7 h-7" />
-            )}
+            {loading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Sparkles className="w-7 h-7" />}
             EXECUTAR ANÁLISE PROFISSIONAL
           </button>
         </div>
 
         {/* Resultados da Busca de Oportunidades */}
         {resultadosBusca && (
-          <div className="bg-[#0A0C0B] border border-[#00A951]/30 rounded-3xl p-10 mb-12">
-            <div className="flex items-center gap-3 mb-6 text-[#00A951]">
-              <Globe className="w-5 h-5" />
-              <span className="font-mono uppercase tracking-widest text-sm font-semibold">
-                PRATELEIRA DE OPORTUNIDADES - BUSCA GLOBAL
-              </span>
+          <div className="bg-[#0A0C0B] border border-[#00A951]/30 rounded-3xl p-10 mb-12 relative">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3 text-[#00A951]">
+                <Globe className="w-5 h-5" />
+                <span className="font-mono uppercase tracking-widest text-sm font-semibold">
+                  PRATELEIRA DE OPORTUNIDADES
+                </span>
+              </div>
+              <button
+                onClick={() => copiarTexto(resultadosBusca, "Busca de Oportunidades")}
+                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+              >
+                <Copy className="w-5 h-5" />
+                Copiar
+              </button>
             </div>
             <div className="prose prose-invert max-w-none text-[17px] leading-relaxed text-zinc-200">
               <div className="whitespace-pre-wrap">{resultadosBusca}</div>
@@ -202,12 +328,21 @@ Seja crítico e priorize alto potencial de conversão.`;
 
         {/* Resposta da Análise Manual */}
         {response && (
-          <div className="bg-[#0A0C0B] border border-[#00A951]/20 rounded-3xl p-10">
-            <div className="flex items-center gap-3 mb-6 text-[#00A951]">
-              <div className="w-3 h-3 bg-[#00A951] rounded-full animate-pulse" />
-              <span className="font-mono uppercase tracking-widest text-sm font-semibold">
-                RELATÓRIO ALPHA GERADO
-              </span>
+          <div className="bg-[#0A0C0B] border border-[#00A951]/20 rounded-3xl p-10 relative">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3 text-[#00A951]">
+                <div className="w-3 h-3 bg-[#00A951] rounded-full animate-pulse" />
+                <span className="font-mono uppercase tracking-widest text-sm font-semibold">
+                  RELATÓRIO ALPHA GERADO
+                </span>
+              </div>
+              <button
+                onClick={() => copiarTexto(response, "Relatório")}
+                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+              >
+                <Copy className="w-5 h-5" />
+                Copiar
+              </button>
             </div>
             <div className="prose prose-invert max-w-none text-[17px] leading-relaxed text-zinc-200">
               <div className="whitespace-pre-wrap">{response}</div>
