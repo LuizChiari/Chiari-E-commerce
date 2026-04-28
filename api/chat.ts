@@ -8,7 +8,7 @@ export default async function handler(req: Request) {
   try {
     const { prompt } = await req.json();
     const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-    let modelName = process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4.6";
+    const modelName = process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: { message: "OPENROUTER_API_KEY não configurada" } }), { status: 500 });
@@ -16,8 +16,8 @@ export default async function handler(req: Request) {
 
     const url = "https://openrouter.ai/api/v1/chat/completions";
 
-    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, especialista em marketing digital, marketing de afiliados e automação com IA no nicho de finanças.
-Responda em português brasileiro, de forma clara, estruturada e prática. Use títulos, bullets e recomendações acionáveis.`;
+    const systemPrompt = `Você é o Comandar Estrategista 3.1 PRO, especialista em marketing de afiliados, finanças e automação com IA. 
+Responda em português brasileiro, de forma clara, prática e estruturada.`;
 
     const fullPrompt = systemPrompt + "\n\nUsuário: " + prompt;
 
@@ -33,7 +33,7 @@ Responda em português brasileiro, de forma clara, estruturada e prática. Use t
         model: modelName,
         messages: [{ role: "user", content: fullPrompt }],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 2000,        // Reduzido para evitar erro de créditos
       }),
     });
 
@@ -41,13 +41,12 @@ Responda em português brasileiro, de forma clara, estruturada e prática. Use t
 
     if (!response.ok || data.error) {
       console.error("OpenRouter Error:", data.error);
-      return new Response(
-        JSON.stringify({ error: data.error || { message: `Erro ${response.status}` } }),
-        { status: response.status || 400 }
-      );
+      return new Response(JSON.stringify({ 
+        error: data.error || { message: `Erro ${response.status}` } 
+      }), { status: response.status || 400 });
     }
 
-    const textoFinal = data.choices?.[0]?.message?.content || "Sem resposta";
+    const textoFinal = data.choices?.[0]?.message?.content || "Sem resposta da IA";
 
     return new Response(JSON.stringify({ 
       candidates: [{ content: { parts: [{ text: textoFinal }] } }] 
