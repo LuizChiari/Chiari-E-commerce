@@ -7,47 +7,46 @@ export default async function handler(req: Request) {
 
   try {
     const { prompt } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
-    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    const apiKey = process.env.OPENROUTER_API_KEY?.trim();
+    const modelName = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: { message: "GEMINI_API_KEY não configurada no Vercel" } }),
+        JSON.stringify({ error: { message: "OPENROUTER_API_KEY não configurada no Vercel" } }),
         { status: 500 }
       );
     }
 
-    // URL corrigida
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const url = "https://openrouter.ai/api/v1/chat/completions";
 
-    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, um analista estratégico de alto nível especializado em estratégias globais, marketing digital, marketing de afiliados, finanças e automação com IA.
+    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, um analista estratégico de alto nível especializado em marketing digital, marketing de afiliados, finanças pessoais e automação com IA.
 Responda sempre em português brasileiro, de forma clara, estruturada, profunda e acionável.
-Use títulos, bullet points, tabelas e recomendações práticas quando apropriado.`;
+Use títulos, bullet points, tabelas e recomendações práticas quando apropriado. Seja profissional e foque em valor real.`;
 
     const fullPrompt = systemPrompt + "\n\nUsuário: " + prompt;
 
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://chiari-alpha.vercel.app', // opcional, mas ajuda
+        'X-Title': 'Chiari Alpha',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: fullPrompt }]
-          }
+        model: modelName,
+        messages: [
+          { role: "user", content: fullPrompt }
         ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4096,
-          topP: 0.95,
-          topK: 40,
-        }
+        temperature: 0.7,
+        max_tokens: 4096,
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error("Gemini API Error:", JSON.stringify(data.error || data, null, 2));
+      console.error("OpenRouter Error:", data.error || data);
       return new Response(
         JSON.stringify({
           error: data.error || { message: `Erro HTTP ${response.status}` },
@@ -57,7 +56,12 @@ Use títulos, bullet points, tabelas e recomendações práticas quando apropria
       );
     }
 
-    return new Response(JSON.stringify(data), { 
+    // Extrai o texto da resposta (formato OpenAI)
+    const textoFinal = data.choices?.[0]?.message?.content || "Resposta vazia";
+
+    return new Response(JSON.stringify({ 
+      candidates: [{ content: { parts: [{ text: textoFinal }] } }] 
+    }), { 
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -65,7 +69,7 @@ Use títulos, bullet points, tabelas e recomendações práticas quando apropria
   } catch (error: any) {
     console.error("Handler Error:", error);
     return new Response(
-      JSON.stringify({ error: { message: "Erro interno no proxy da aplicação: " + error.message } }),
+      JSON.stringify({ error: { message: "Erro interno no proxy: " + error.message } }),
       { status: 500 }
     );
   }
