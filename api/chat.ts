@@ -7,9 +7,8 @@ export default async function handler(req: Request) {
 
   try {
     const { prompt } = await req.json();
-
     const apiKey = process.env.GEMINI_API_KEY?.trim();
-    const modelName = process.env.GEMINI_MODEL || "gemini-3.1-pro-preview";
+    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
     if (!apiKey) {
       return new Response(
@@ -18,14 +17,14 @@ export default async function handler(req: Request) {
       );
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/\( {modelName}:generateContent?key= \){apiKey}`;
+    // URL corrigida
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    // System prompt personalizado para o Comandar Estrategista
-    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, um analista estratégico de alto nível especializado em estratégias globais, marketing (incluindo FNO), negócios e tomada de decisão.
+    const systemPrompt = `Você é o **Comandar Estrategista 3.1 PRO**, um analista estratégico de alto nível especializado em estratégias globais, marketing digital, marketing de afiliados, finanças e automação com IA.
+Responda sempre em português brasileiro, de forma clara, estruturada, profunda e acionável.
+Use títulos, bullet points, tabelas e recomendações práticas quando apropriado.`;
 
-Responda sempre em português brasileiro, de forma clara, estruturada, profunda e acionável. 
-Use títulos, bullet points e recomendações práticas quando apropriado. 
-Seja profissional, objetivo e foque em insights de valor real.`;
+    const fullPrompt = systemPrompt + "\n\nUsuário: " + prompt;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -33,8 +32,7 @@ Seja profissional, objetivo e foque em insights de valor real.`;
       body: JSON.stringify({
         contents: [
           {
-            role: "user",
-            parts: [{ text: systemPrompt + "\n\nUsuário: " + prompt }]
+            parts: [{ text: fullPrompt }]
           }
         ],
         generationConfig: {
@@ -43,13 +41,13 @@ Seja profissional, objetivo e foque em insights de valor real.`;
           topP: 0.95,
           topK: 40,
         }
-      })
+      }),
     });
 
     const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error("Gemini API Error:", data.error);
+      console.error("Gemini API Error:", JSON.stringify(data.error || data, null, 2));
       return new Response(
         JSON.stringify({
           error: data.error || { message: `Erro HTTP ${response.status}` },
@@ -59,12 +57,15 @@ Seja profissional, objetivo e foque em insights de valor real.`;
       );
     }
 
-    return new Response(JSON.stringify(data), { status: 200 });
+    return new Response(JSON.stringify(data), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
 
   } catch (error: any) {
     console.error("Handler Error:", error);
     return new Response(
-      JSON.stringify({ error: { message: "Erro interno no proxy da aplicação" } }),
+      JSON.stringify({ error: { message: "Erro interno no proxy da aplicação: " + error.message } }),
       { status: 500 }
     );
   }
