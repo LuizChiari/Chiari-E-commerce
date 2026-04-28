@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Bot, Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
+import { Bot, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AnalistaIA() {
@@ -9,14 +9,9 @@ export default function AnalistaIA() {
   const [promptInput, setPromptInput] = useState('');
 
   const runAnalysis = async () => {
-    if (loading) return;
-    
-    const userPrompt = promptInput.trim();
-    if (!userPrompt) {
-      toast.error('Por favor, digite sua estratégia ou pergunta.');
-      return;
-    }
+    if (loading || !promptInput.trim()) return;
 
+    const userPrompt = promptInput.trim();
     setLoading(true);
     setResponse('');
 
@@ -30,111 +25,93 @@ export default function AnalistaIA() {
       const data = await res.json();
 
       if (data.error) {
-        const errorMsg = data.error.message || data.error.status || 'Erro desconhecido na API';
-        
-        // Mensagens amigáveis para erros comuns
-        if (errorMsg.includes('API key not valid') || errorMsg.includes('invalid API key')) {
-          toast.error('❌ Chave da API inválida. Verifique a GEMINI_API_KEY no Vercel.');
-        } else if (errorMsg.includes('not found') || errorMsg.includes('model')) {
-          toast.error('❌ Modelo não encontrado. Verifique GEMINI_MODEL no Vercel.');
-        } else {
-          toast.error(`Erro: ${errorMsg}`);
-        }
-        
-        throw new Error(errorMsg);
+        toast.error(data.error.message || 'Erro ao processar análise');
+        return;
       }
 
-      // Extração robusta da resposta do Gemini
       let textoFinal = '';
-      
       if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
         textoFinal = data.candidates[0].content.parts[0].text;
-      } else if (data.candidates?.[0]?.content?.text) {
-        textoFinal = data.candidates[0].content.text;
-      } else if (typeof data === 'string') {
-        textoFinal = data;
-      } else {
-        textoFinal = JSON.stringify(data, null, 2);
-      }
-
-      if (!textoFinal) {
-        throw new Error('Resposta vazia da IA');
+      } else if (data.choices?.[0]?.message?.content) {
+        textoFinal = data.choices[0].message.content;
       }
 
       setResponse(textoFinal);
-      toast.success('✅ Análise Alpha Gerada com sucesso!');
-
+      toast.success('✅ Relatório Alpha Gerado com sucesso!');
     } catch (err: any) {
-      console.error('Erro na análise:', err);
-      toast.error(err.message || 'Falha na conexão com o Comandar Estrategista');
+      toast.error('Falha na conexão com o Comandar Estrategista');
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 font-sans">
-      <Toaster position="top-right" richColors />
+    <div className="min-h-screen bg-black text-white font-sans">
+      <Toaster position="top-center" richColors />
 
-      <header className="bg-white border-b border-slate-200 py-6 px-8 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      {/* Header */}
+      <header className="border-b border-zinc-800 py-6 px-8">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/admin" className="p-2 hover:bg-slate-100 rounded-full transition-all">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="bg-purple-600 p-2 rounded-lg">
-                <Bot className="text-white w-6 h-6" />
-              </div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight underline decoration-purple-500">
-                CHIARI ALPHA <span className="text-purple-600 font-mono text-sm">v3.1 PRO</span>
+            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
+              <Bot className="w-7 h-7 text-black" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter">
+                CHIARI <span className="text-emerald-400">ALPHA</span>
               </h1>
+              <p className="text-emerald-500 text-sm font-mono">V3.1 PRO</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-8 mt-10">
-        <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl mb-8">
-          <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-            Comandar Estrategista 3.1 PRO
-          </h2>
-          <p className="text-slate-500 mb-6 font-medium">
-            O motor Gemini 3.1 está pronto para processar sua estratégia global.
+      <main className="max-w-3xl mx-auto px-6 py-12">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3">Comandar Estrategista 3.1 PRO</h2>
+          <p className="text-zinc-400 text-lg">
+            O motor está pronto para processar sua estratégia global.
           </p>
-          
-          <textarea 
-            className="w-full h-40 p-5 border-2 border-slate-100 rounded-2xl mb-4 
-                       focus:border-purple-500 focus:ring-0 outline-none resize-none 
-                       transition-all text-slate-700 text-lg shadow-inner"
-            placeholder="Ex: Analise FNO marketing para 2026, sugira 3 nichos de alta conversão em dólar ou crie um plano de automação para imobiliária..."
+        </div>
+
+        {/* Caixa de Prompt */}
+        <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 mb-8">
+          <textarea
+            className="w-full h-40 bg-black border border-zinc-700 rounded-2xl p-6 text-lg 
+                       placeholder-zinc-500 focus:border-emerald-500 focus:outline-none resize-none"
+            placeholder="Faça uma pesquisa nos EUA sobre o que está acontecendo no Marketing digital..."
             value={promptInput}
-            onChange={e => setPromptInput(e.target.value)}
+            onChange={(e) => setPromptInput(e.target.value)}
           />
-          
-          <button 
+
+          <button
             onClick={runAnalysis}
             disabled={loading || !promptInput.trim()}
-            className="w-full bg-purple-600 hover:bg-black text-white px-8 py-5 rounded-2xl font-black 
-                       flex items-center justify-center gap-3 transition-all active:scale-95 
-                       disabled:opacity-50 shadow-lg shadow-purple-200 disabled:cursor-not-allowed"
+            className="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-700 
+                       text-black font-black py-5 rounded-2xl text-lg flex items-center 
+                       justify-center gap-3 transition-all active:scale-[0.98]"
           >
             {loading ? (
               <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
               <Sparkles className="w-6 h-6" />
             )}
-            {loading ? 'SINCRONIZANDO NÚCLEO ALPHA...' : 'EXECUTAR ANÁLISE DE ALTO NÍVEL'}
+            EXECUTAR ANÁLISE PROFISSIONAL
           </button>
         </div>
 
+        {/* Área de Resposta */}
         {response && (
-          <div className="bg-slate-900 text-slate-100 p-10 rounded-[2.5rem] shadow-2xl border-t-4 border-purple-500 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h3 className="text-sm font-black text-purple-400 mb-6 flex items-center gap-2 uppercase tracking-[0.2em]">
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-              RELATÓRIO ESTRATÉGICO GERADO
-            </h3>
-            <div className="prose prose-invert max-w-none text-lg leading-relaxed">
+          <div className="bg-zinc-950 border border-emerald-500/30 rounded-3xl p-10">
+            <div className="flex items-center gap-3 mb-6 text-emerald-400">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="font-mono uppercase tracking-widest text-sm">
+                RELATÓRIO ALPHA GERADO
+              </span>
+            </div>
+            
+            <div className="prose prose-invert prose-zinc max-w-none text-lg leading-relaxed">
               <div className="whitespace-pre-wrap">{response}</div>
             </div>
           </div>
