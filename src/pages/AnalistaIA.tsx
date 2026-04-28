@@ -211,6 +211,75 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
 
     try {
       const res = await fetch('/api/chat', {
+import React, { useState } from 'react';
+import { Toaster, toast } from 'sonner';
+import { Bot, Sparkles, Loader2, Globe, Copy, Check } from 'lucide-react';
+
+export default function AnalistaIA() {
+  const [loading, setLoading] = useState(false);
+  const [loadingBusca, setLoadingBusca] = useState(false);
+  const [response, setResponse] = useState('');
+  const [resultadosBusca, setResultadosBusca] = useState('');
+  const [promptInput, setPromptInput] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // Função para copiar texto
+  const copiarTexto = async (texto: string, tipo: string) => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopied(true);
+      toast.success(`${tipo} copiado para a área de transferência!`);
+      
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Erro ao copiar texto');
+    }
+  };
+
+  // Análise manual livre
+  const runAnalysis = async () => {
+    if (loading || !promptInput.trim()) return;
+
+    const userPrompt = promptInput.trim();
+    setLoading(true);
+    setResponse('');
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt })
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        toast.error(data.error.message || 'Erro ao processar');
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || "Sem resposta";
+
+      setResponse(textoFinal);
+      toast.success('Relatório Alpha Gerado!');
+    } catch (err) {
+      toast.error('Falha na conexão');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Busca de Oportunidades (EUA → Brasil → Europa)
+  const iniciarBuscaOportunidades = async () => {
+    setLoadingBusca(true);
+    setResultadosBusca('');
+
+    const promptBusca = `Você é o Comandar Estrategista 3.1 PRO...
+
+Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
+
+    try {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: promptBusca })
