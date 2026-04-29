@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Bot, Sparkles, Loader2, Globe, Copy, Plus, Target } from 'lucide-react';
+import { Bot, Sparkles, Loader2, Globe, Copy } from 'lucide-react';
 
 export default function AnalistaIA() {
   const [loading, setLoading] = useState(false);
@@ -9,30 +9,40 @@ export default function AnalistaIA() {
   const [resultadosBusca, setResultadosBusca] = useState('');
   const [promptInput, setPromptInput] = useState('');
   const [regrasProdutor, setRegrasProdutor] = useState('');
-  const [cursosAtivos, setCursosAtivos] = useState<any[]>([]);
 
   const copiarTexto = async (texto: string, tipo: string) => {
     if (!texto) return;
     try {
       await navigator.clipboard.writeText(texto);
-      toast.success(`${tipo} copiado para a área de transferência!`);
+      toast.success(`${tipo} copiado!`);
     } catch (err) {
-      toast.error('Erro ao copiar texto');
+      toast.error('Erro ao copiar');
     }
   };
 
-  const runAnalysis = async () => {
-    if (loading || !promptInput.trim()) return;
-    // ... (mesma função)
-  };
-
+  // Busca de Oportunidades (Principal)
   const iniciarBuscaOportunidades = async () => {
     setLoadingBusca(true);
     setResultadosBusca('');
 
-    const promptBusca = `Você é o Comandar Estrategista 3.1 PRO...
+    const promptBusca = `Você é o Comandar Estrategista 3.1 PRO.
 
-Faça uma busca completa...`; // Use o prompt mestre completo que te passei antes
+Faça uma busca estratégica de oportunidades de afiliados no nicho de finanças, investimentos, renda extra e automação com IA em 2026.
+
+Ordem obrigatória:
+1. EUA (tendências atuais)
+2. Brasil (Hotmart, Eduzz, Monetizze, Kiwify, Braip, Ticto...)
+3. Europa (Systeme.io, Digistore24, etc.)
+
+Para cada oportunidade liste:
+- Nome do curso/produto
+- Região/Plataforma
+- Comissão aproximada
+- Ticket médio
+- Por que vale promover agora
+- Hook sugerido
+
+Seja objetivo e crítico.`;
 
     try {
       const res = await fetch('/api/chat', {
@@ -42,10 +52,11 @@ Faça uma busca completa...`; // Use o prompt mestre completo que te passei ante
       });
 
       const data = await res.json();
-      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || data.choices?.[0]?.message?.content || "Sem resposta";
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || "Sem resposta";
 
       setResultadosBusca(textoFinal);
-      toast.success('✅ Busca concluída com sucesso!');
+      toast.success('✅ Busca concluída!');
     } catch (err) {
       toast.error('Erro na busca');
     } finally {
@@ -53,26 +64,37 @@ Faça uma busca completa...`; // Use o prompt mestre completo que te passei ante
     }
   };
 
-  const adicionarCursoAtivo = () => {
-    const nome = prompt("Digite o nome do curso que você quer promover:");
-    if (!nome) return;
+  const runAnalysis = async () => {
+    if (loading || !promptInput.trim()) return;
 
-    const novoCurso = {
-      id: Date.now(),
-      nome,
-      regras: regrasProdutor || "Nenhuma regra definida ainda",
-      data: new Date().toLocaleDateString('pt-BR')
-    };
+    setLoading(true);
+    setResponse('');
 
-    setCursosAtivos([...cursosAtivos, novoCurso]);
-    toast.success(`"${nome}" adicionado à Prateleira Ativa!`);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptInput })
+      });
+
+      const data = await res.json();
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || "Sem resposta";
+
+      setResponse(textoFinal);
+      toast.success('Relatório gerado!');
+    } catch (err) {
+      toast.error('Erro ao gerar análise');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#111111] text-white font-sans pb-20">
       <Toaster position="top-center" richColors />
 
-      <header className="border-b border-[#0A0C0B] py-8 px-8 sticky top-0 bg-[#111111] z-10">
+      <header className="border-b border-[#0A0C0B] py-8 px-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 bg-[#00A951] rounded-2xl flex items-center justify-center shadow-[0_0_30px_#00A951]">
@@ -82,98 +104,81 @@ Faça uma busca completa...`; // Use o prompt mestre completo que te passei ante
               <h1 className="text-5xl font-black tracking-[-1.5px]">
                 CHIARI <span className="text-[#00A951]">ALPHA</span>
               </h1>
-              <p className="text-[#00A951] text-2xl font-mono tracking-[2px]">V3.1 PRO</p>
+              <p className="text-[#00A951] text-2xl font-mono">V3.1 PRO</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 pt-12 space-y-16">
+      <main className="max-w-5xl mx-auto px-6 pt-16 space-y-16">
 
-        {/* Botão Busca Global */}
+        {/* Botão Principal */}
         <div className="text-center">
           <button
             onClick={iniciarBuscaOportunidades}
             disabled={loadingBusca}
-            className="w-full max-w-2xl mx-auto bg-gradient-to-r from-[#00A951] to-[#00C15E] text-black font-black py-8 rounded-3xl text-3xl flex items-center justify-center gap-5 transition-all active:scale-[0.98]"
+            className="w-full max-w-xl mx-auto bg-gradient-to-r from-[#00A951] to-[#00C15E] text-black font-black py-8 rounded-3xl text-2xl flex items-center justify-center gap-4 transition-all active:scale-95"
           >
-            {loadingBusca ? <Loader2 className="w-9 h-9 animate-spin" /> : <Target className="w-9 h-9" />}
+            {loadingBusca ? <Loader2 className="w-8 h-8 animate-spin" /> : <Globe className="w-8 h-8" />}
             🚀 INICIAR BUSCA DE OPORTUNIDADES
           </button>
-          <p className="text-zinc-500 mt-4">EUA → Brasil → Europa</p>
+          <p className="text-zinc-500 mt-4 text-sm">EUA → Brasil → Europa</p>
         </div>
 
         {/* Central de Regras */}
-        <div>
-          <h3 className="text-2xl font-bold mb-6 text-[#00A951] flex items-center gap-3">
-            📋 Central de Regras do Produtor
-          </h3>
+        <div className="bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-8">
+          <h3 className="text-xl font-semibold mb-4 text-[#00A951]">📋 Central de Regras do Produtor</h3>
           <textarea
-            className="w-full h-52 bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-8 text-base resize-y focus:border-[#00A951]"
-            placeholder="Cole aqui todas as regras, restrições, tom de voz permitido, palavras proibidas e orientações do produtor..."
+            className="w-full h-44 bg-[#111111] border border-[#1F2521] rounded-2xl p-6 text-base resize-y focus:border-[#00A951]"
+            placeholder="Cole aqui as regras, restrições e orientações do produtor..."
             value={regrasProdutor}
             onChange={(e) => setRegrasProdutor(e.target.value)}
           />
         </div>
 
-        {/* Análise Manual */}
-        <div>
-          <h3 className="text-2xl font-bold mb-6">Análise Livre</h3>
+        {/* Análise Livre */}
+        <div className="bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-8">
+          <h3 className="text-xl font-semibold mb-4">Análise Livre</h3>
           <textarea
-            className="w-full h-52 bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-8 text-lg"
-            placeholder="Digite qualquer pergunta, estratégia ou análise que quiser..."
+            className="w-full h-44 bg-[#111111] border border-[#1F2521] rounded-2xl p-6 text-lg placeholder-zinc-500 focus:border-[#00A951]"
+            placeholder="Digite qualquer pergunta ou estratégia..."
             value={promptInput}
             onChange={(e) => setPromptInput(e.target.value)}
           />
-          <button onClick={runAnalysis} disabled={loading || !promptInput.trim()} className="mt-6 w-full bg-[#00A951] py-6 rounded-3xl text-xl font-black">
-            EXECUTAR ANÁLISE PROFISSIONAL
+          <button
+            onClick={runAnalysis}
+            disabled={loading || !promptInput.trim()}
+            className="mt-6 w-full bg-[#00A951] hover:bg-[#00C15E] text-black font-black py-6 rounded-2xl text-lg"
+          >
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-6 h-6" />}
+            EXECUTAR ANÁLISE
           </button>
         </div>
 
-        {/* Prateleira de Oportunidades */}
+        {/* Resultados */}
         {resultadosBusca && (
-          <div className="bg-[#0A0C0B] border border-[#00A951]/30 rounded-3xl p-10">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold text-[#00A951]">Prateleira de Oportunidades</h3>
-              <button onClick={() => copiarTexto(resultadosBusca, "Oportunidades")} className="flex items-center gap-2 text-sm">
-                <Copy className="w-5 h-5" /> Copiar tudo
+          <div className="bg-[#0A0C0B] border border-[#00A951]/30 rounded-3xl p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-[#00A951]">Prateleira de Oportunidades</h3>
+              <button onClick={() => copiarTexto(resultadosBusca, "Oportunidades")} className="text-sm flex items-center gap-2">
+                <Copy className="w-5 h-5" /> Copiar
               </button>
             </div>
-            <div className="whitespace-pre-wrap text-zinc-100 leading-relaxed">{resultadosBusca}</div>
+            <div className="whitespace-pre-wrap text-zinc-200 leading-relaxed">{resultadosBusca}</div>
           </div>
         )}
 
-        {/* Prateleira Ativa */}
-        <div className="bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-10">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-2xl font-bold text-[#00A951]">Prateleira Ativa - Cursos em Promoção</h3>
-            <button
-              onClick={adicionarCursoAtivo}
-              className="flex items-center gap-3 bg-zinc-800 hover:bg-zinc-700 px-6 py-3 rounded-2xl text-sm"
-            >
-              <Plus className="w-5 h-5" /> Adicionar Curso Manualmente
-            </button>
-          </div>
-
-          {cursosAtivos.length === 0 ? (
-            <p className="text-zinc-500 italic">Nenhum curso ativo ainda. Use o botão acima para adicionar.</p>
-          ) : (
-            <div className="grid gap-6">
-              {cursosAtivos.map((curso) => (
-                <div key={curso.id} className="bg-[#111111] p-8 rounded-2xl border border-zinc-700">
-                  <h4 className="text-xl font-semibold">{curso.nome}</h4>
-                  <p className="text-sm text-emerald-400 mt-2">Adicionado em {curso.data}</p>
-                  {curso.regras && curso.regras !== "Nenhuma regra definida ainda" && (
-                    <div className="mt-4 text-xs bg-zinc-900 p-4 rounded-xl">
-                      <strong>Regras salvas:</strong><br />
-                      {curso.regras.substring(0, 200)}{curso.regras.length > 200 ? '...' : ''}
-                    </div>
-                  )}
-                </div>
-              ))}
+        {response && (
+          <div className="bg-[#0A0C0B] border border-[#00A951]/20 rounded-3xl p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-[#00A951]">Relatório Alpha</h3>
+              <button onClick={() => copiarTexto(response, "Relatório")} className="text-sm flex items-center gap-2">
+                <Copy className="w-5 h-5" /> Copiar
+              </button>
             </div>
-          )}
-        </div>
+            <div className="whitespace-pre-wrap text-zinc-200">{response}</div>
+          </div>
+        )}
       </main>
     </div>
   );
