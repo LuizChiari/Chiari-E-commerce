@@ -306,6 +306,139 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 bg-[#00A951] rounded-2xl flex items-center justify-center shadow-[0_0_30px_#00A951]">
+import React, { useState } from 'react';
+import { Toaster, toast } from 'sonner';
+import { Bot, Sparkles, Loader2, Globe, Copy } from 'lucide-react';
+
+export default function AnalistaIA() {
+  const [loading, setLoading] = useState(false);
+  const [loadingBusca, setLoadingBusca] = useState(false);
+  const [response, setResponse] = useState('');
+  const [resultadosBusca, setResultadosBusca] = useState('');
+  const [promptInput, setPromptInput] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // Função para copiar texto
+  const copiarTexto = async (texto: string, tipo: string) => {
+    if (!texto) return;
+    
+    try {
+      await navigator.clipboard.writeText(texto);
+      toast.success(`${tipo} copiado para a área de transferência!`);
+    } catch (err) {
+      toast.error('Erro ao copiar texto');
+    }
+  };
+
+  // Análise manual livre
+  const runAnalysis = async () => {
+    if (loading || !promptInput.trim()) return;
+
+    const userPrompt = promptInput.trim();
+    setLoading(true);
+    setResponse('');
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        toast.error(data.error.message || 'Erro ao processar');
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || 
+                        "Sem resposta da IA";
+
+      setResponse(textoFinal);
+      toast.success('Relatório Alpha Gerado com sucesso!');
+    } catch (err) {
+      toast.error('Falha na conexão com o Comandar Estrategista');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Busca de Oportunidades (EUA → Brasil → Europa)
+  const iniciarBuscaOportunidades = async () => {
+    setLoadingBusca(true);
+    setResultadosBusca('');
+
+    const promptBusca = `Você é o Comandar Estrategista 3.1 PRO, especialista em marketing de afiliados e tendências globais.
+
+Faça uma busca completa e estratégica de oportunidades de afiliados no nicho de finanças pessoais, investimentos, renda extra, automação com IA e marketing digital em 2026.
+
+Siga exatamente esta ordem:
+
+1. **EUA** (Primeira prioridade)
+   - Quais são as maiores tendências atuais em marketing digital, finanças e IA nos Estados Unidos?
+   - Quais tipos de produtos estão vendendo mais?
+   - Quais ângulos e estratégias estão funcionando bem lá?
+
+2. **Brasil**
+   - Plataformas: Hotmart, Eduzz, Monetizze, Kiwify, Braip, Ticto e outras brasileiras.
+   - Liste os melhores cursos/produtos no nicho de finanças, investimentos, IA e renda extra.
+
+3. **Europa**
+   - Plataformas como Systeme.io, Digistore24, Clickbank Europa, etc.
+   - Oportunidades relevantes no nicho.
+
+Para cada oportunidade encontrada, forneça:
+- Nome completo do curso ou produto
+- Região (EUA, Brasil ou Europa)
+- Plataforma
+- Link da página de vendas ou afiliação (se disponível)
+- Comissão aproximada
+- Ticket médio aproximado
+- Pontos fortes
+- Por que vale promover agora
+- Ângulo de venda sugerido (hook principal)
+
+Seja crítico e priorize alto potencial de conversão.`;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptBusca })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        toast.error(data.error.message || 'Erro na busca');
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        data.choices?.[0]?.message?.content || 
+                        "Sem resposta da IA";
+
+      setResultadosBusca(textoFinal);
+      toast.success('✅ Busca de Oportunidades concluída!');
+
+    } catch (err) {
+      toast.error('Erro ao realizar a busca de oportunidades');
+    } finally {
+      setLoadingBusca(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#111111] text-white font-sans">
+      <Toaster position="top-center" richColors />
+
+      {/* Header */}
+      <header className="border-b border-[#0A0C0B] py-8 px-8">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 bg-[#00A951] rounded-2xl flex items-center justify-center shadow-[0_0_30px_#00A951]">
               <Bot className="w-8 h-8 text-black" />
             </div>
             <div>
@@ -315,17 +448,6 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
               <p className="text-[#00A951] text-2xl font-mono tracking-[2px] mt-1">V3.1 PRO</p>
             </div>
           </div>
-
-          {/* Botão Copiar Global (se tiver conteúdo) */}
-          {(response || resultadosBusca) && (
-            <button
-              onClick={() => copiarTexto(response || resultadosBusca, "Texto")}
-              className="flex items-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm transition-all"
-            >
-              <Copy className="w-5 h-5" />
-              Copiar Tudo
-            </button>
-          )}
         </div>
       </header>
 
@@ -345,11 +467,14 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
                        transition-all active:scale-[0.97] shadow-[0_0_35px_#00A95180]"
           >
             {loadingBusca ? <Loader2 className="w-8 h-8 animate-spin" /> : <Globe className="w-8 h-8" />}
-            🚀 INICIAR BUSCA DE OPORTUNIDADES (EUA → Brasil → Europa)
+            🚀 INICIAR BUSCA DE OPORTUNIDADES
           </button>
+          <p className="text-center text-zinc-500 text-sm mt-3">
+            EUA → Brasil → Europa | Nicho: Finanças + IA + Marketing Digital
+          </p>
         </div>
 
-        {/* Área de Análise Manual Livre */}
+        {/* Caixa de Análise Manual Livre */}
         <div className="bg-[#0A0C0B] border border-[#1F2521] rounded-3xl p-10 mb-12">
           <textarea
             className="w-full h-48 bg-[#111111] border border-[#1F2521] rounded-2xl p-7 text-lg 
@@ -364,7 +489,7 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
             onClick={runAnalysis}
             disabled={loading || !promptInput.trim()}
             className="mt-8 w-full bg-[#00A951] hover:bg-[#00C15E] disabled:bg-zinc-700 
-                       text-black font-black py-6 rounded-2xl text-xl flex items-center justify-center gap-3"
+                       text-black font-black py-6 rounded-2xl text-xl flex items-center justify-center gap-3 transition-all"
           >
             {loading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Sparkles className="w-7 h-7" />}
             EXECUTAR ANÁLISE PROFISSIONAL
@@ -373,7 +498,7 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
 
         {/* Resultados da Busca de Oportunidades */}
         {resultadosBusca && (
-          <div className="bg-[#0A0C0B] border border-[#00A951]/30 rounded-3xl p-10 mb-12 relative">
+          <div className="bg-[#0A0C0B] border border-[#00A951]/30 rounded-3xl p-10 mb-12">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3 text-[#00A951]">
                 <Globe className="w-5 h-5" />
@@ -383,7 +508,7 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
               </div>
               <button
                 onClick={() => copiarTexto(resultadosBusca, "Busca de Oportunidades")}
-                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm"
               >
                 <Copy className="w-5 h-5" />
                 Copiar
@@ -397,7 +522,7 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
 
         {/* Resposta da Análise Manual */}
         {response && (
-          <div className="bg-[#0A0C0B] border border-[#00A951]/20 rounded-3xl p-10 relative">
+          <div className="bg-[#0A0C0B] border border-[#00A951]/20 rounded-3xl p-10">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3 text-[#00A951]">
                 <div className="w-3 h-3 bg-[#00A951] rounded-full animate-pulse" />
@@ -407,7 +532,7 @@ Faça uma busca completa... (mesmo prompt que te passei anteriormente)`;
               </div>
               <button
                 onClick={() => copiarTexto(response, "Relatório")}
-                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm"
               >
                 <Copy className="w-5 h-5" />
                 Copiar
