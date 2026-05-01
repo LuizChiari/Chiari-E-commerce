@@ -12,32 +12,27 @@ export default function LoginPage({ session }: { session: Session | null | undef
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (session) {
-      navigate('/admin');
-    }
+    if (session) navigate('/admin');
   }, [session, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    try {
-      const { error } = await getSupabase().auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
+    if (error) toast.error(error.message);
+    else navigate('/admin');
+    setLoading(false);
+  };
 
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Login bem-sucedido!');
-        navigate('/admin');
-      }
-    } catch (err: any) {
-      toast.error('Erro ao fazer login.');
-    } finally {
-      setLoading(false);
-    }
+  const handleRecovery = async () => {
+    if (!email) { toast.error('Digite seu e-mail primeiro'); return; }
+    setLoading(true);
+    const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) toast.error(error.message);
+    else toast.success('Link enviado para seu e-mail!');
+    setLoading(false);
   };
 
   return (
@@ -49,46 +44,31 @@ export default function LoginPage({ session }: { session: Session | null | undef
             <TrendingUp className="w-8 h-8" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-center text-slate-900 mb-2">Acesso Restrito</h1>
-        <p className="text-center text-slate-500 mb-8">Faça login para gerenciar o Global Affiliate Hub</p>
-
+        <h1 className="text-2xl font-bold text-center text-slate-900 mb-8">Global Affiliate Hub</h1>
+        
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 block">E-mail</label>
+            <label className="text-sm font-medium text-slate-700">E-mail</label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-              <input
-                type="email"
-                required
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <input type="email" required className="w-full pl-10 py-2 border rounded-lg" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 block">Senha</label>
+            <label className="text-sm font-medium text-slate-700">Senha</label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
-              <input
-                type="password"
-                required
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <input type="password" required className="w-full pl-10 py-2 border rounded-lg" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors mt-6 disabled:opacity-50"
-          >
-            {loading ? 'Entrando...' : 'Entrar no Sistema'}
+          <button type="button" onClick={handleRecovery} className="text-sm text-blue-600 hover:underline">
+            Esqueci minha senha
+          </button>
+
+          <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">
+            {loading ? 'Aguarde...' : 'Entrar no Sistema'}
           </button>
         </form>
       </div>
