@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import LoginPage from './pages/LoginPage';
 import AnalistaIA from './pages/AnalistaIA';
 import Captura from './pages/Captura';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import { getSupabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -59,6 +60,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage session={session} />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         
         {/* Rotas Protegidas do Admin */}
         <Route path="/admin" element={<ProtectedRoute session={session}><AdminDashboard /></ProtectedRoute>} />
