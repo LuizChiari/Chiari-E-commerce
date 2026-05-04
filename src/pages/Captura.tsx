@@ -6,6 +6,14 @@ import { ArrowRight, Mail, User, ShieldCheck, Sparkles, Download } from 'lucide-
 
 export default function Captura() {
   const [searchParams] = useSearchParams();
+
+  // ==========================================
+  // 🔧 CONFIGURAÇÕES DA PÁGINA DE VENDAS
+  // ==========================================
+  const VIDEO_ID_YOUTUBE = "SEU_ID_DO_VIDEO"; // O código do vídeo. Ex: se for youtube.com/watch?v=dQw4w9WgXcQ, coloque apenas dQw4w9WgXcQ
+  const MEU_LINK_DE_AFILIADO = "/meu-produto-afiliado"; // Coloque a barra (/) seguida do Slug que você criou no painel. Ex: "/curso-ia"
+  // ==========================================
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -66,18 +74,39 @@ export default function Captura() {
         <div className="max-w-[800px] w-full pt-12">
           <div className="text-2xl font-bold text-[#00ff88] mb-8 uppercase">Chiari Digital</div>
           
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">Tudo certo! O Guia foi enviado.</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-6">Tudo certo! O seu Guia está pronto.</h1>
           
+          <div className="mb-10">
+            <a 
+              href="/guia-prompts.pdf" 
+              download="Guia_Definitivo_Prompts_Chiari.pdf"
+              className="inline-flex items-center gap-3 bg-purple-600 text-white font-bold py-4 px-8 rounded-full hover:bg-purple-500 transition-transform hover:scale-105 shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+            >
+              <Download className="w-6 h-6" />
+              BAIXAR MEU GUIA EM PDF AGORA
+            </a>
+          </div>
+
           <p className="text-[#aaaaaa] text-lg leading-relaxed mb-8">
-            Enquanto o e-mail chega, <strong>assista ao vídeo abaixo</strong>. Ele revela como escalar seus ganhos usando a Inteligência Artificial que você acabou de baixar.
+            <strong>Atenção:</strong> Assista ao vídeo abaixo. Ele revela como escalar seus ganhos usando a Inteligência Artificial que você acabou de baixar.
           </p>
           
-          <div className="bg-[#1a1a1a] border-2 border-[#333] rounded-[15px] p-5 my-8 aspect-video flex items-center justify-center">
-            <p className="text-[#666] font-medium">[VÍDEO DE VENDAS DO PARCEIRO]</p>
+          {/* Vídeo de Vendas (VSL) */}
+          <div className="bg-[#1a1a1a] border-2 border-[#333] rounded-[15px] p-2 my-8 aspect-video flex items-center justify-center overflow-hidden shadow-2xl">
+            <iframe 
+              width="100%" 
+              height="100%" 
+              src={`https://www.youtube.com/embed/${VIDEO_ID_YOUTUBE}?autoplay=1`}
+              title="Vídeo de Vendas" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg bg-black"
+            ></iframe>
           </div>
 
           <a 
-            href="#" 
+            href={MEU_LINK_DE_AFILIADO}
             className="bg-gradient-to-r from-[#00ff88] to-[#00bd6e] text-black py-5 px-10 rounded-full no-underline font-bold text-lg md:text-xl inline-block transition-transform duration-300 hover:scale-105 shadow-[0_0_20px_rgba(0,255,136,0.3)]"
           >
             QUERO ACESSAR O MÉTODO COMPLETO →

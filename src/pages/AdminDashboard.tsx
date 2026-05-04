@@ -128,11 +128,7 @@ export default function AdminDashboard() {
   }
 
   const copyToClipboard = (slug: string) => {
-    let baseUrl = window.location.origin;
-    // Substitui a URL de desenvolvimento pela URL pública compartilhada para evitar erro 403 de autenticação do Google
-    if (baseUrl.includes('ais-dev')) {
-      baseUrl = baseUrl.replace('ais-dev', 'ais-pre');
-    }
+    const baseUrl = window.location.origin;
     const url = `${baseUrl}/${slug}`;
     navigator.clipboard.writeText(url);
     toast.success('Link público copiado!');
