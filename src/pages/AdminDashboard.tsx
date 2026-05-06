@@ -13,6 +13,7 @@ import {
   TrendingUp, 
   Package, 
   DollarSign, 
+  Users,
   Trash2,
   AlertCircle,
   PowerOff,
@@ -24,6 +25,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 
 export default function AdminDashboard() {
   const [links, setLinks] = useState<AffiliateLink[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'links' | 'leads'>('links');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -38,6 +41,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchLinks();
+    fetchLeads();
   }, []);
 
   async function fetchLinks() {
@@ -58,6 +62,22 @@ export default function AdminDashboard() {
       toast.error(err.message || 'Erro de configuração do Supabase');
     }
     setLoading(false);
+  }
+
+  async function fetchLeads() {
+    try {
+      const client = getSupabase();
+      const { data, error } = await client
+        .from('leads_v3')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error) {
+        setLeads(data || []);
+      }
+    } catch (err: any) {
+      console.error('Erro ao buscar leads', err);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -309,90 +329,145 @@ export default function AdminDashboard() {
 
           {/* List Column */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex gap-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                <Input className="pl-10" placeholder="Buscar links..." />
+            <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-between items-center">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button 
+                  onClick={() => setActiveTab('links')} 
+                  variant={activeTab === 'links' ? 'default' : 'outline'}
+                  className="flex-1 sm:flex-none gap-2"
+                >
+                  <Package className="w-4 h-4" /> Links
+                </Button>
+                <Button 
+                  onClick={() => setActiveTab('leads')} 
+                  variant={activeTab === 'leads' ? 'default' : 'outline'}
+                  className="flex-1 sm:flex-none gap-2"
+                >
+                  <Users className="w-4 h-4" /> Leads ({leads.length})
+                </Button>
               </div>
+              {activeTab === 'links' && (
+                <div className="relative flex-1 w-full sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <Input className="pl-10" placeholder="Buscar links..." />
+                </div>
+              )}
             </div>
 
             <Card className="border-slate-200 shadow-lg overflow-hidden">
-              <Table>
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead className="font-bold">Produto</TableHead>
-                    <TableHead className="font-bold">Slug / Link</TableHead>
-                    <TableHead className="font-bold text-center">Cliques</TableHead>
-                    <TableHead className="font-bold text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
+              {activeTab === 'links' ? (
+                <Table>
+                  <TableHeader className="bg-slate-50">
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-10 text-slate-400">
-                        Carregando links...
-                      </TableCell>
+                      <TableHead className="font-bold">Produto</TableHead>
+                      <TableHead className="font-bold">Slug / Link</TableHead>
+                      <TableHead className="font-bold text-center">Cliques</TableHead>
+                      <TableHead className="font-bold text-right">Ações</TableHead>
                     </TableRow>
-                  ) : links.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-10 text-slate-400">
-                        Nenhum link encontrado. Crie o seu primeiro!
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    links.map((link) => (
-                      <TableRow key={link.id} className="hover:bg-slate-50 transition-colors">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-                              <Package className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <div className="font-semibold text-slate-900">{link.nome_produto}</div>
-                              <div className="text-xs text-slate-500">{link.moeda === 'BRL' ? 'Real Brasileiro' : link.moeda}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <code className="text-xs bg-slate-100 px-2 py-0.5 rounded text-blue-700 w-fit">/{link.slug_curto}</code>
-                            <button 
-                              onClick={() => copyToClipboard(link.slug_curto)}
-                              className="text-[10px] text-slate-400 hover:text-blue-600 flex items-center gap-1 transition-colors uppercase font-bold tracking-tighter"
-                            >
-                              <Copy className="w-3 h-3" /> Copiar Link
-                            </button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="font-mono font-medium text-lg text-slate-800">{link.cliques}</div>
-                          <div className="text-[10px] text-slate-400 uppercase font-bold">Acessos</div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <a 
-                              href={link.url_original} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
-                              title="Visualizar Original"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                            <button 
-                              onClick={() => deleteLink(link.id)}
-                              className="p-2 hover:bg-red-50 rounded-full text-red-500 transition-colors"
-                              title="Excluir"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-10 text-slate-400">
+                          Carregando links...
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : links.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-10 text-slate-400">
+                          Nenhum link encontrado. Crie o seu primeiro!
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      links.map((link) => (
+                        <TableRow key={link.id} className="hover:bg-slate-50 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                                <Package className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-slate-900">{link.nome_produto}</div>
+                                <div className="text-xs text-slate-500">{link.moeda === 'BRL' ? 'Real Brasileiro' : link.moeda}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <code className="text-xs bg-slate-100 px-2 py-0.5 rounded text-blue-700 w-fit">/{link.slug_curto}</code>
+                              <button 
+                                onClick={() => copyToClipboard(link.slug_curto)}
+                                className="text-[10px] text-slate-400 hover:text-blue-600 flex items-center gap-1 transition-colors uppercase font-bold tracking-tighter"
+                              >
+                                <Copy className="w-3 h-3" /> Copiar Link
+                              </button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="font-mono font-medium text-lg text-slate-800">{link.cliques}</div>
+                            <div className="text-[10px] text-slate-400 uppercase font-bold">Acessos</div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <a 
+                                href={link.url_original} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                                title="Visualizar Original"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                              <button 
+                                onClick={() => deleteLink(link.id)}
+                                className="p-2 hover:bg-red-50 rounded-full text-red-500 transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Table>
+                  <TableHeader className="bg-slate-50">
+                    <TableRow>
+                      <TableHead className="font-bold">Nome</TableHead>
+                      <TableHead className="font-bold">E-mail</TableHead>
+                      <TableHead className="font-bold">Origem</TableHead>
+                      <TableHead className="font-bold">Data</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {leads.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-10 text-slate-400">
+                          Nenhum lead capturado ainda.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      leads.map((lead) => (
+                        <TableRow key={lead.id} className="hover:bg-slate-50 transition-colors">
+                          <TableCell className="font-medium text-slate-900">{lead.name}</TableCell>
+                          <TableCell className="text-slate-600">{lead.email}</TableCell>
+                          <TableCell>
+                            <span className="bg-slate-100 border border-slate-200 text-slate-600 px-2 py-1 rounded-md text-xs">
+                              {lead.origin || 'N/A'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-slate-500 text-sm">
+                            {new Date(lead.created_at).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </Card>
           </div>
         </div>
