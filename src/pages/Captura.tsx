@@ -192,6 +192,10 @@ export default function Captura() {
             <p className="text-center text-xs text-zinc-500 mt-4 flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" /> Suas informações estão seguras.
             </p>
+            
+            <p className="text-center text-[10px] text-zinc-600 mt-2 leading-tight">
+              Ao prosseguir, você concorda com nossos <a href="/termos" className="underline hover:text-zinc-400">Termos de Uso</a> e <a href="/privacidade" className="underline hover:text-zinc-400">Política de Privacidade</a>, além de consentir com o recebimento de comunicações.
+            </p>
           </form>
         </div>
       </div>

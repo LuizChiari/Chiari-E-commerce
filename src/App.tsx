@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import AnalistaIA from './pages/AnalistaIA';
 import Captura from './pages/Captura';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import Privacidade from './pages/Privacidade';
+import Termos from './pages/Termos';
 import { getSupabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -71,6 +73,10 @@ export default function App() {
 
         {/* Captura de Leads V3 */}
         <Route path="/captura" element={<Captura />} />
+
+        {/* Páginas Legais */}
+        <Route path="/privacidade" element={<Privacidade />} />
+        <Route path="/termos" element={<Termos />} />
 
         {/* Dynamic Catch-all for Slugs */}
         <Route path="/:slug" element={<RedirectPage />} />

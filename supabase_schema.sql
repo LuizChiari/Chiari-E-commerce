@@ -86,3 +86,13 @@ DROP POLICY IF EXISTS "Exclusao de links provisoria" ON public.links_afiliados;
 -- para resolver os warnings `anon_security_definer_function_executable` e `authenticated_security_definer_function_executable`.
 REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated;
 DROP FUNCTION IF EXISTS public.rls_auto_enable CASCADE;
+
+-- ==========================================
+-- 6. INCREMENTO SEGURO DE CLIQUES
+-- ==========================================
+CREATE OR REPLACE FUNCTION public.increment_click(link_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.links_afiliados SET cliques = cliques + 1 WHERE id = link_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

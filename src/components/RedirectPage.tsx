@@ -32,10 +32,8 @@ export default function RedirectPage() {
 
         // Incrementar cliques em background (RPC ou Update)
         client
-          .from('links_afiliados')
-          .update({ cliques: (data.cliques || 0) + 1 })
-          .eq('id', data.id)
-          .then();
+          .rpc('increment_click', { link_id: data.id })
+          .then(({ error }) => { if (error) console.error('Erro ao incrementar clique:', error); });
 
         // Injetar Facebook Pixel se existir
         if (data.pixel_id) {
