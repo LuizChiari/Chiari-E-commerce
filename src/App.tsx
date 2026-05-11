@@ -8,6 +8,8 @@ import Captura from './pages/Captura';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Privacidade from './pages/Privacidade';
 import Termos from './pages/Termos';
+import PresellCleanseSana from './pages/PresellCleanseSana';
+import PresellCleanseSanaDE from './pages/PresellCleanseSanaDE';
 import { getSupabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -73,6 +75,10 @@ export default function App() {
 
         {/* Captura de Leads V3 */}
         <Route path="/captura" element={<Captura />} />
+
+        {/* Presells (Advertoriais) */}
+        <Route path="/cleanse-oferta" element={<PresellCleanseSana />} />
+        <Route path="/cleanse-de" element={<PresellCleanseSanaDE />} />
 
         {/* Páginas Legais */}
         <Route path="/privacidade" element={<Privacidade />} />

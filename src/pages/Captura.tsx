@@ -11,7 +11,7 @@ export default function Captura() {
   // 🔧 CONFIGURAÇÕES DA PÁGINA DE VENDAS
   // ==========================================
   const VIDEO_ID_YOUTUBE = "SEU_ID_DO_VIDEO"; // O código do vídeo. Ex: se for youtube.com/watch?v=dQw4w9WgXcQ, coloque apenas dQw4w9WgXcQ
-  const MEU_LINK_DE_AFILIADO = "/meu-produto-afiliado"; // Coloque a barra (/) seguida do Slug que você criou no painel. Ex: "/curso-ia"
+  const MEU_LINK_DE_AFILIADO = "/cleanse-sana"; // Link 100% camuflado redirecionando para a oferta
   // ==========================================
 
   const [name, setName] = useState('');
