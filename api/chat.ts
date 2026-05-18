@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
     });
 
@@ -27,6 +27,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ choices: [{ message: { content: text } }] });
   } catch (err: any) {
     console.error('Gemini API error:', err);
-    return res.status(500).json({ error: err.message || 'Gemini API error' });
+
+    // Extrair mensagem limpa de erros da API do Google (que chegam como JSON stringificado)
+    let message = 'Erro na API do Gemini';
+    try {
+      const parsed = JSON.parse(err.message);
+      message = parsed?.error?.message ?? message;
+    } catch {
+      message = err.message || message;
+    }
+
+    const status = message.includes('quota') || message.includes('RESOURCE_EXHAUSTED') ? 429 : 500;
+    return res.status(status).json({ error: message });
   }
 }

@@ -56,7 +56,16 @@ Seja objetivo e crítico.`;
       });
 
       const data = await res.json();
-      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+
+      if (!res.ok) {
+        const msg = res.status === 429
+          ? 'Cota da API do Gemini esgotada. Tente novamente em alguns minutos.'
+          : data.error || 'Erro na API';
+        toast.error(msg);
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text ||
                         data.choices?.[0]?.message?.content || "Sem resposta";
 
       setResultadosBusca(textoFinal);
@@ -86,7 +95,16 @@ Seja objetivo e crítico.`;
       });
 
       const data = await res.json();
-      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+
+      if (!res.ok) {
+        const msg = res.status === 429
+          ? 'Cota da API do Gemini esgotada. Tente novamente em alguns minutos.'
+          : data.error || 'Erro na API';
+        toast.error(msg);
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text ||
                         data.choices?.[0]?.message?.content || "Sem resposta";
 
       setResponse(textoFinal);
