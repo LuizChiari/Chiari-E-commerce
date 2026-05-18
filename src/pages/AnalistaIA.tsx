@@ -44,11 +44,15 @@ Para cada oportunidade liste:
 
 Seja objetivo e crítico.`;
 
+    const promptFinalBusca = regrasProdutor.trim()
+      ? `${promptBusca}\n\n---\nREGRAS DO PRODUTOR:\n${regrasProdutor}`
+      : promptBusca;
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptBusca })
+        body: JSON.stringify({ prompt: promptFinalBusca })
       });
 
       const data = await res.json();
@@ -70,11 +74,15 @@ Seja objetivo e crítico.`;
     setLoading(true);
     setResponse('');
 
+    const promptFinal = regrasProdutor.trim()
+      ? `${promptInput}\n\n---\nREGRAS DO PRODUTOR:\n${regrasProdutor}`
+      : promptInput;
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptInput })
+        body: JSON.stringify({ prompt: promptFinal })
       });
 
       const data = await res.json();

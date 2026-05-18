@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getSupabase, AffiliateLink } from '@/src/lib/supabase';
+import { getSupabase, AffiliateLink, Lead } from '@/src/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -25,8 +25,9 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 
 export default function AdminDashboard() {
   const [links, setLinks] = useState<AffiliateLink[]>([]);
-  const [leads, setLeads] = useState<any[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [activeTab, setActiveTab] = useState<'links' | 'leads'>('links');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -159,17 +160,10 @@ export default function AdminDashboard() {
     if (!error) navigate('/login');
   };
 
-  // Mock data para Gráfico Analisando total de cliques (Somatório simulado por dia)
-  const chartData = [
-    { name: 'Seg', cliques: Math.floor(Math.random() * 50) + 10 },
-    { name: 'Ter', cliques: Math.floor(Math.random() * 60) + 20 },
-    { name: 'Qua', cliques: Math.floor(Math.random() * 80) + 30 },
-    { name: 'Qui', cliques: Math.floor(Math.random() * 70) + 40 },
-    { name: 'Sex', cliques: Math.floor(Math.random() * 100) + 50 },
-    { name: 'Sáb', cliques: Math.floor(Math.random() * 150) + 80 },
-    { name: 'Dom', cliques: links.reduce((acc, l) => acc + (l.cliques || 0), 0) + 5 // Puxando do real só pra ancorar o número final
-    },
-  ];
+  const chartData = [...links]
+    .sort((a, b) => (b.cliques || 0) - (a.cliques || 0))
+    .slice(0, 7)
+    .map((l) => ({ name: l.slug_curto, cliques: l.cliques || 0 }));
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -203,7 +197,7 @@ export default function AdminDashboard() {
         <div className="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-blue-500" />
-            Desempenho Geral de Cliques (Últimos 7 dias)
+            Top 7 Links por Cliques
           </h2>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -349,7 +343,12 @@ export default function AdminDashboard() {
               {activeTab === 'links' && (
                 <div className="relative flex-1 w-full sm:max-w-xs">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input className="pl-10" placeholder="Buscar links..." />
+                  <Input
+                    className="pl-10"
+                    placeholder="Buscar links..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
               )}
             </div>
@@ -379,7 +378,12 @@ export default function AdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      links.map((link) => (
+                      links
+                        .filter((l) => {
+                          const q = searchQuery.toLowerCase();
+                          return l.nome_produto.toLowerCase().includes(q) || l.slug_curto.toLowerCase().includes(q);
+                        })
+                        .map((link) => (
                         <TableRow key={link.id} className="hover:bg-slate-50 transition-colors">
                           <TableCell>
                             <div className="flex items-center gap-3">
