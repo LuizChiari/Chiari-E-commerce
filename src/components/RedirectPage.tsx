@@ -4,6 +4,15 @@ import { getSupabase, AffiliateLink } from '@/src/lib/supabase';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
+function escapeJs(str: string): string {
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+}
+
 export default function RedirectPage() {
   const { slug } = useParams<{ slug: string }>();
   const [loading, setLoading] = useState(true);
@@ -47,10 +56,10 @@ export default function RedirectPage() {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${data.pixel_id}');
+            fbq('init', '${escapeJs(data.pixel_id)}');
             fbq('track', 'PageView');
             fbq('track', 'ViewContent', {
-              content_name: '${data.nome_produto}',
+              content_name: '${escapeJs(data.nome_produto)}',
               content_category: 'Affiliate Link'
             });
           `;
@@ -67,10 +76,10 @@ export default function RedirectPage() {
           script.innerHTML = `
             !function (w, d, t) {
               w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
-              ttq.load('${data.tiktok_pixel_id}');
+              ttq.load('${escapeJs(data.tiktok_pixel_id)}');
               ttq.page();
               ttq.track('ViewContent', {
-                content_name: '${data.nome_produto}',
+                content_name: '${escapeJs(data.nome_produto)}',
                 content_category: 'Affiliate Link'
               });
             }(window, document, 'ttq');
@@ -90,9 +99,9 @@ export default function RedirectPage() {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${data.google_tag_id}');
+            gtag('config', '${escapeJs(data.google_tag_id)}');
             gtag('event', 'page_view', {
-              page_title: '${data.nome_produto}',
+              page_title: '${escapeJs(data.nome_produto)}',
               page_location: window.location.href,
               page_path: window.location.pathname
             });

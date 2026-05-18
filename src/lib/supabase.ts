@@ -17,14 +17,6 @@ export const getSupabase = (): SupabaseClient => {
   return supabaseInstance;
 };
 
-// Deprecated: Use getSupabase() instead. Keeping for backward compatibility during migration.
-// This will still throw if called, but at least won't crash on module load.
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_, prop) {
-    return (getSupabase() as any)[prop];
-  }
-});
-
 export type AffiliateLink = {
   id: string;
   created_at: string;
@@ -36,4 +28,12 @@ export type AffiliateLink = {
   tiktok_pixel_id?: string;
   google_tag_id?: string;
   cliques: number;
+};
+
+export type Lead = {
+  id: string;
+  created_at: string;
+  name: string;
+  email: string;
+  origin?: string;
 };
