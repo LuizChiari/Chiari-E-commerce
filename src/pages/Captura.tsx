@@ -24,7 +24,7 @@ export default function Captura() {
   const origin = searchParams.get('origin') || searchParams.get('origem') || 'organico-hub';
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     if (success) {
       timer = setInterval(() => {
         setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));

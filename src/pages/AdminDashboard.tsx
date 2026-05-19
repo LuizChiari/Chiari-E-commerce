@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getSupabase, AffiliateLink } from '@/src/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +23,20 @@ import { toast, Toaster } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
+interface Lead {
+  id: string;
+  created_at: string;
+  name: string;
+  email: string;
+  origin: string | null;
+}
+
 export default function AdminDashboard() {
   const [links, setLinks] = useState<AffiliateLink[]>([]);
-  const [leads, setLeads] = useState<any[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [activeTab, setActiveTab] = useState<'links' | 'leads'>('links');
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome_produto: '',
@@ -160,16 +169,20 @@ export default function AdminDashboard() {
   };
 
   // Mock data para Gráfico Analisando total de cliques (Somatório simulado por dia)
-  const chartData = [
+  const chartData = useMemo(() => [
     { name: 'Seg', cliques: Math.floor(Math.random() * 50) + 10 },
     { name: 'Ter', cliques: Math.floor(Math.random() * 60) + 20 },
     { name: 'Qua', cliques: Math.floor(Math.random() * 80) + 30 },
     { name: 'Qui', cliques: Math.floor(Math.random() * 70) + 40 },
     { name: 'Sex', cliques: Math.floor(Math.random() * 100) + 50 },
     { name: 'Sáb', cliques: Math.floor(Math.random() * 150) + 80 },
-    { name: 'Dom', cliques: links.reduce((acc, l) => acc + (l.cliques || 0), 0) + 5 // Puxando do real só pra ancorar o número final
-    },
-  ];
+    { name: 'Dom', cliques: links.reduce((acc, l) => acc + (l.cliques || 0), 0) + 5 },
+  ], [links]);
+
+  const filteredLinks = links.filter(link => 
+    link.nome_produto.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    link.slug_curto.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -349,7 +362,12 @@ export default function AdminDashboard() {
               {activeTab === 'links' && (
                 <div className="relative flex-1 w-full sm:max-w-xs">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input className="pl-10" placeholder="Buscar links..." />
+              <Input 
+                className="pl-10" 
+                placeholder="Buscar links..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
                 </div>
               )}
             </div>
@@ -378,8 +396,14 @@ export default function AdminDashboard() {
                           Nenhum link encontrado. Crie o seu primeiro!
                         </TableCell>
                       </TableRow>
+                ) : filteredLinks.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-10 text-slate-400">
+                      Nenhum link corresponde à busca.
+                    </TableCell>
+                  </TableRow>
                     ) : (
-                      links.map((link) => (
+                  filteredLinks.map((link) => (
                         <TableRow key={link.id} className="hover:bg-slate-50 transition-colors">
                           <TableCell>
                             <div className="flex items-center gap-3">
