@@ -44,15 +44,28 @@ Para cada oportunidade liste:
 
 Seja objetivo e crítico.`;
 
+    const promptFinalBusca = regrasProdutor.trim()
+      ? `${promptBusca}\n\n---\nREGRAS DO PRODUTOR:\n${regrasProdutor}`
+      : promptBusca;
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptBusca })
+        body: JSON.stringify({ prompt: promptFinalBusca })
       });
 
       const data = await res.json();
-      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+
+      if (!res.ok) {
+        const msg = res.status === 429
+          ? 'Cota da API do Gemini esgotada. Tente novamente em alguns minutos.'
+          : data.error || 'Erro na API';
+        toast.error(msg);
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text ||
                         data.choices?.[0]?.message?.content || "Sem resposta";
 
       setResultadosBusca(textoFinal);
@@ -70,15 +83,28 @@ Seja objetivo e crítico.`;
     setLoading(true);
     setResponse('');
 
+    const promptFinal = regrasProdutor.trim()
+      ? `${promptInput}\n\n---\nREGRAS DO PRODUTOR:\n${regrasProdutor}`
+      : promptInput;
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptInput })
+        body: JSON.stringify({ prompt: promptFinal })
       });
 
       const data = await res.json();
-      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+
+      if (!res.ok) {
+        const msg = res.status === 429
+          ? 'Cota da API do Gemini esgotada. Tente novamente em alguns minutos.'
+          : data.error || 'Erro na API';
+        toast.error(msg);
+        return;
+      }
+
+      const textoFinal = data.candidates?.[0]?.content?.parts?.[0]?.text ||
                         data.choices?.[0]?.message?.content || "Sem resposta";
 
       setResponse(textoFinal);

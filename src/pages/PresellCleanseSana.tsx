@@ -1,0 +1,88 @@
+import React from 'react';
+import { ArrowRight, CheckCircle, ShieldCheck } from 'lucide-react';
+
+export default function PresellCleanseSana() {
+  // ⚠️ IMPORTANTE:
+  // Mude este link para o SLUG do seu produto no painel admin (ex: "/cleanse-sana")
+  const AFFILIATE_SLUG_URL = "/cleanse-sana";
+
+  return (
+    <div className="min-h-screen bg-white font-sans text-slate-900">
+      {/* Header */}
+      <header className="w-full bg-blue-900 py-3 px-4 text-center">
+        <p className="text-white text-sm font-bold tracking-wide uppercase">
+          Advertorial | Saúde & Bem-Estar
+        </p>
+      </header>
+
+      <main className="max-w-3xl mx-auto px-6 py-10 md:py-16">
+        {/* Headline */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-slate-900 mb-6">
+            Descubra o ritual matinal simples que apoia uma digestão saudável e a desintoxicação natural do organismo
+          </h1>
+          <p className="text-xl text-slate-600 leading-relaxed">
+            Milhares de pessoas já utilizam esse método diário incomum para apoiar o corpo, promover a saúde intestinal e se sentir mais leve a cada dia.
+          </p>
+        </div>
+
+        {/* Main Image */}
+        <div className="w-full rounded-2xl overflow-hidden mb-8 shadow-lg border border-slate-200">
+          <img src="https://images.unsplash.com/photo-1542691457-cbe4df041eb2?q=80&w=1000&auto=format&fit=crop" alt="Bebida saudável" className="w-full h-auto object-cover aspect-video" />
+        </div>
+
+        {/* Parágrafos de conteúdo */}
+        <div className="mb-10 text-slate-700 leading-relaxed space-y-4">
+          <p>Especialistas concordam que um intestino saudável é a chave para o bem-estar geral, mais energia e um metabolismo funcionando corretamente. No entanto, muitos métodos tradicionais exigem dietas drásticas ou rotinas extenuantes difíceis de manter no dia a dia.</p>
+          <p>Felizmente, existe agora uma nova abordagem, elogiada por nutricionistas, que se encaixa facilmente em qualquer manhã.</p>
+        </div>
+
+        {/* Benefícios */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 md:p-8 mb-10">
+          <h2 className="text-2xl font-bold mb-6 text-slate-800">Por que está viralizando?</h2>
+          <ul className="space-y-4">
+            <li className="flex items-start gap-3 text-lg text-slate-700">
+              <CheckCircle className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
+              <span><strong>100% Natural:</strong> Formulado com ingredientes com respaldo científico.</span>
+            </li>
+            <li className="flex items-start gap-3 text-lg text-slate-700">
+              <CheckCircle className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
+              <span><strong>Apoio intestinal:</strong> Promove uma digestão saudável e regularidade.</span>
+            </li>
+            <li className="flex items-start gap-3 text-lg text-slate-700">
+              <CheckCircle className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
+              <span><strong>Mais energia:</strong> Usuários relatam mais disposição no dia a dia, sem picos e quedas bruscas.</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center">
+          <p className="text-sm text-slate-500 mb-3 uppercase tracking-wider font-semibold">
+            Passo 1: Assista à apresentação gratuita
+          </p>
+          <a
+            href={AFFILIATE_SLUG_URL}
+            className="inline-flex items-center justify-center gap-2 w-full md:w-auto bg-green-600 hover:bg-green-500 text-white font-black text-xl py-5 px-10 rounded-full transition-transform hover:scale-105 shadow-[0_10px_20px_rgba(22,163,74,0.3)] mb-4"
+          >
+            ASSISTIR AO VÍDEO AGORA <ArrowRight className="w-6 h-6" />
+          </a>
+          <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500 mt-2">
+            <ShieldCheck className="w-4 h-4" /> Conexão SSL segura
+          </p>
+        </div>
+      </main>
+
+      {/* Footer / Compliance */}
+      <footer className="w-full bg-slate-50 border-t border-slate-200 py-8 px-4 mt-10 text-center">
+        <p className="text-xs text-slate-400 max-w-2xl mx-auto mb-4 leading-relaxed">
+          As afirmações sobre este produto não foram avaliadas pela ANVISA. Este produto não se destina a diagnosticar, tratar, curar ou prevenir qualquer doença. Este é um advertorial e não um artigo jornalístico, blog ou atualização de saúde.
+        </p>
+        <div className="flex justify-center gap-4 text-sm text-slate-500">
+          <a href="/privacidade" className="hover:underline">Política de Privacidade</a>
+          <a href="/termos" className="hover:underline">Termos de Uso</a>
+        </div>
+      </footer>
+    </div>
+  );
+}
